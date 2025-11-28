@@ -1,0 +1,15 @@
+{
+    "splatAsset": "Assets/brug.sog",
+	"orientation": [90, 0, 180],
+    "portals": [
+        {
+            "name": "Campus",
+            "image": "Assets/Icons/Campus.jpg",
+            "position": [4.80, 1.16, 1.97],
+            "scale": [5, 5, 5],
+            "targetScene": "Campus",
+            "targetCameraPosition": [-130.79, 2.86, 255.50],
+            "targetCameraLookAt": [-136.22, -4.21, 260.04]
+        }
+    ]
+}

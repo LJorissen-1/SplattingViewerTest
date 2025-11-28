@@ -1,0 +1,99 @@
+{
+    "splatAsset": "Assets/campus.sog",
+	"orientation": [0, 0, 180],
+    "portals": [
+        {
+            "name": "Brug",
+            "image": "Assets/Icons/door.png",
+            "position": [-189.73, -91.93, 304.67],
+            "scale": [5, 5, 5],
+            "targetScene": "brug",
+            "targetCameraPosition": [-0.52, 1.23, 1.51],
+            "targetCameraLookAt": [-1.01, -0.37, -7.00],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 200
+        },
+        {
+            "name": "Wandelpad",
+            "image": "Assets/Icons/Wandelpad.jpg",
+            "position": [227.71, -93.70, 74.53],
+            "scale": [5, 5, 5],
+            "targetScene": "wandelpad",
+            "targetCameraPosition": [-0.03, 2.09, 1.53],
+            "targetCameraLookAt": [-2.12, 0.55, -8.13],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 200
+        }
+    ],
+	"labels": [
+		{
+	      "name": "Parkeertoren",
+		  "text": "Parkeertoren",
+		  "position": [302.93, -65.24, 83.66],
+		  "fontSize": 42,
+		  "color": [1, 1, 1],
+		  "bgColor": [0, 0, 0, 0.9],
+		  "minScale": 0.5,
+		  "maxScale": 3.0,
+		  "minSizeDistance": 200
+		},
+		{
+	      "name": "UHasselt",
+		  "text": "UHasselt",
+		  "position": [-24.53, -67.74, -366.96],
+		  "fontSize": 42,
+		  "color": [1, 1, 1],
+ 		  "bgColor": [0, 0, 0, 0.9],
+  		  "minScale": 0.5,
+		  "maxScale": 3.0,
+		  "minSizeDistance": 200
+		},
+		{
+	      "name": "Digital Future Lab",
+		  "text": "Digital Future Lab",
+		  "position": [-236.04, -63.30, 296.20],
+		  "fontSize": 42,
+		  "color": [1, 1, 1],
+ 		  "bgColor": [0, 0, 0, 0.9],
+  		  "minScale": 0.5,
+		  "maxScale": 3.0,
+		  "minSizeDistance": 200
+		},
+		{
+	      "name": "Poortgebouw",
+		  "text": "Poortgebouw",
+		  "position": [-143.81, -37.01, 322.14],
+		  "fontSize": 42,
+		  "color": [1, 1, 1],
+ 		  "bgColor": [0, 0, 0, 0.9],
+  		  "minScale": 0.5,
+		  "maxScale": 3.0,
+		  "minSizeDistance": 200
+		}
+		
+		
+	],
+	"models": [
+		{
+		  "name": "Poortgebouw",
+		  "url": "Assets/Models/Poortgebouw/Poortgebouw.obj",
+		  "position": [-144.18, -100, 328.35],
+		  "rotation": [0, 0, 0],
+		  "scale": [1, 1, 1]
+		}
+	],
+	"scripts": [
+        "Assets/Scripts/Campus/ParkeertorenMonitor.js"
+    ],
+	"viewpoints": [
+    {
+      "name": "Library View",
+      "position": [-135.96, -54.18, 317.27],
+      "targetPosition": [-135.96, -54.18, 317.27],
+      "targetLookAt": [-135.00, -55.86, 307.46],
+      "icon": "Assets/Icons/Wandelpad.jpg" 
+    }
+  ]
+}
