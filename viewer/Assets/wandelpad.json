@@ -6,14 +6,26 @@
             "name": "Campus",
             "image": "Assets/Icons/Campus.jpg",
             "position": [0.24, 2.39, 4.20],
-            "scale": [2, 2, 2],
+            "scale": [1, 1, 1],
             "targetScene": "campus",
             "targetCameraPosition": [260.49, -32.13, 79.02],
             "targetCameraLookAt": [252.39, -37.84, 80.34],
 			"minScale": 0.5,
 		    "maxScale": 3.0,
 		    "minSizeDistance": 50
-        }
+        },
+		{
+            "name": "Wandelpad_Zijkant",
+            "image": "Assets/Icons/Wandelpad.jpg",
+            "position": [-25.38, 0.79, -81.30],
+            "scale": [3, 3, 3],
+            "targetScene": "wandelpad_zijkant",
+            "targetCameraPosition": [-20.02, -0.32, 10.64],
+            "targetCameraLookAt": [-16.52, -2.70, 1.58],
+			"minScale": 0.1,
+		    "maxScale": 5.0,
+		    "minSizeDistance": 100
+        }	
     ],
     "labels": [
 		{
@@ -31,5 +43,3 @@
        	"Assets/Scripts/Campus/ParkeertorenMonitor.js"
     ]
 }
-
-

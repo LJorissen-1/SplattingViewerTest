@@ -1,0 +1,44 @@
+{
+    "splatAsset": "Assets/Splats/Wandelpad_2025_11_21_Bioville_Zijkant/lod-meta.json",
+	"orientation": [90, 0, 180],
+    "portals": [
+        {
+            "name": "Campus",
+            "image": "Assets/Icons/Campus.jpg",
+            "position": [-35.09, 0.84, 45.21],
+            "scale": [1, 1, 1],
+            "targetScene": "campus",
+            "targetCameraPosition": [260.49, -32.13, 79.02],
+            "targetCameraLookAt": [252.39, -37.84, 80.34],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 50
+        },
+		{
+            "name": "Campus_bioville",
+            "image": "Assets/Icons/Campus.jpg",
+            "position": [52.34, 0.76, -49.06],
+            "scale": [1, 1, 1],
+            "targetScene": "campus",
+            "targetCameraPosition": [48.21, -52.88, 121.89],
+            "targetCameraLookAt": [39.42, -57.64, 121.65],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 50
+        },
+		{
+            "name": "wandelpad_bioville",
+            "image": "Assets/Icons/Wandelpad.jpg",
+            "position": [-24.79, -0.07, 15.47],
+            "scale": [1, 1, 1],
+            "targetScene": "wandelpad",
+            "targetCameraPosition": [-25.51, 0.87, -75.31],
+            "targetCameraLookAt": [-16.89, -1.47, -70.80],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 50
+        }
+    ]
+}
+
+

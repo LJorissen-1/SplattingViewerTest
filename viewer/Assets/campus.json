@@ -1,6 +1,7 @@
 {
-    "splatAsset": "Assets/campus.sog",
-	"orientation": [0, 0, 180],
+    "splatAsset": "Assets/Splats/Campus/lod-meta.json",
+	"orientation": [90, 0, 180],
+	"lodDistances": [50, 100, 250, 500, 650],
     "portals": [
         {
             "name": "Brug",
@@ -22,6 +23,18 @@
             "targetScene": "wandelpad",
             "targetCameraPosition": [-0.03, 2.09, 1.53],
             "targetCameraLookAt": [-2.12, 0.55, -8.13],
+			"minScale": 0.5,
+		    "maxScale": 3.0,
+		    "minSizeDistance": 200
+        },
+		{
+            "name": "Wandelpad_Zijkant",
+            "image": "Assets/Icons/Wandelpad.jpg",
+            "position": [15.08, -89.57, 119.80],
+            "scale": [5, 5, 5],
+            "targetScene": "wandelpad_zijkant",
+            "targetCameraPosition": [52.34, 0.76, -49.06],
+            "targetCameraLookAt": [42.94, -0.77, -46.00],
 			"minScale": 0.5,
 		    "maxScale": 3.0,
 		    "minSizeDistance": 200
@@ -78,9 +91,16 @@
 	"models": [
 		{
 		  "name": "Poortgebouw",
-		  "url": "Assets/Models/Poortgebouw/Poortgebouw.obj",
+		  "url": "Assets/Models/Poortgebouw/Poortgebouw.glb",
 		  "position": [-144.18, -100, 328.35],
 		  "rotation": [0, 0, 0],
+		  "scale": [1, 1, 1]
+		},
+		{
+		  "name": "Bouwcampus",
+		  "url": "Assets/Models/Bouwcampus2/bouwcampus2_exterior.glb",
+		  "position": [255.42, -92.9, 70.41],
+		  "rotation": [0, -75, 0],
 		  "scale": [1, 1, 1]
 		}
 	],

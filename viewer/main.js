@@ -18,20 +18,22 @@ function getSceneParams() {
             parseFloat(params.get("lx") || 0),
             parseFloat(params.get("ly") || 0),
             parseFloat(params.get("lz") || 0)
-        )
+        ),		
+		lod: parseInt(params.get("lod") || 3)
     };
 }
 
 const sceneParams = getSceneParams();
-console.log(sceneParams);
+sceneParams.lod = (sceneParams.lod > 3) ? 3 : sceneParams.lod ;
+sceneParams.lod = (sceneParams.lod < 0) ? 0 : sceneParams.lod ;
 
 // Create application
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 
 // Create application
-const mouse = new pc.Mouse(document.body);
-const touch = new pc.TouchDevice(document.body); // Highly recommended for mobile support
+const mouse = new pc.Mouse(canvas);
+const touch = new pc.TouchDevice(canvas); // Highly recommended for mobile support
 
 const app = new pc.Application(canvas, {
     mouse: mouse, // Pass them here
@@ -113,9 +115,16 @@ if (sceneData.viewpoints) {
 const objModelAssets = [];
 if (sceneData.models) {
     sceneData.models.forEach((modelDef, index) => {
-        const modelAsset = new pc.Asset(modelDef.name || `obj-model-${index}`, 'model', {
-            url: modelDef.url
+        const url = modelDef.url;
+        const ext = pc.path.getExtension(url).toLowerCase();
+        
+        // Determine asset type: 'container' for GLB, 'model' (handled by parser) for OBJ
+        const type = (ext === '.glb' || ext === '.gltf') ? 'container' : 'model';
+
+        const modelAsset = new pc.Asset(modelDef.name || `model-${index}`, type, {
+            url: url
         });
+
         // Add to the main loader object
         assets[`model-${index}`] = modelAsset; 
         // Keep in our specific list for easy access during creation
@@ -125,6 +134,9 @@ if (sceneData.models) {
 
 const loader = new pc.AssetListLoader(Object.values(assets), app.assets);
 await new Promise(resolve => loader.load(resolve));
+
+
+createOverlayUI(sceneData);
 
 // --- SCENE CONSTRUCTION ---
 
@@ -159,16 +171,28 @@ if (sceneParams.hasCamArgs)
 }
 
 
-// Instantiate OBJ Models defined in JSON
+// Instantiate Models defined in JSON
 const modelEntities = [];
 if (sceneData.models) {
     sceneData.models.forEach((modelDef, index) => {
-        const entity = new pc.Entity(modelDef.name || 'ObjModel');
-        
-        entity.addComponent('model', {
-            asset: objModelAssets[index]
-        });
+        const asset = objModelAssets[index];
+        let entity;
 
+        // --- HANDLE GLB (Container) ---
+        if (asset.type === 'container') {
+            // Instantiate the render entity from the GLB container
+            entity = asset.resource.instantiateRenderEntity();
+            entity.name = modelDef.name || 'GlbModel';
+        } 
+        // --- HANDLE OBJ (Model Component) ---
+        else {
+            entity = new pc.Entity(modelDef.name || 'ObjModel');
+            entity.addComponent('model', {
+                asset: asset
+            });
+        }
+
+        // Apply Transforms (Works for both types)
         // Set Position
         const p = modelDef.position || [0, 0, 0];
         entity.setPosition(p[0], p[1], p[2]);
@@ -192,23 +216,18 @@ splat.setPosition(0, -0.7, 0);
 const s_o = sceneData.orientation;
 splat.setEulerAngles(s_o[0], s_o[1], s_o[2]);
 splat.addComponent('gsplat', { asset: assets.splatmodel, unified: true }); // Index 1 is the splat
-splat.gsplat.lodDistances = [5, 10, 25, 50, 65];
+splat.gsplat.lodDistances = sceneData.lodDistances ? sceneData.lodDistances : [5, 10, 25, 50, 65];
 app.root.addChild(splat);
 
-const gsplatSettings = app.scene.gsplat;
-gsplatSettings.colorizeLod = false;
-gsplatSettings.lodRangeMin = 1;
-gsplatSettings.lodRangeMax = 4;
-
 // 4. Light
-const light = new pc.Entity('Directional Light');
-light.addComponent('light', {
+const light1 = new pc.Entity('Directional Light');
+light1.addComponent('light', {
     type: 'directional',
     intensity: 0.9,
-    castShadows: true
+    castShadows: false
 });
-light.setEulerAngles(45, 210, 0);
-app.root.addChild(light);
+light1.setEulerAngles(45, 210, 0);
+app.root.addChild(light1);
 
 const screen = new pc.Entity();
 screen.addComponent('screen', {
@@ -446,7 +465,7 @@ function navigateToScene(data) {
     params.set("lx", targetLook[0]);
     params.set("ly", targetLook[1]);
     params.set("lz", targetLook[2]);
-    
+    params.set("lod", sceneParams.lod);
     window.location.href = `index.html?${params.toString()}`;
 }
 
@@ -700,4 +719,174 @@ function smoothCameraMove(targetPos, targetLookAt) {
 
     app.on('update', updateMove);
     cameraTween = { off: () => app.off('update', updateMove) };
+}
+
+// -----------------------------------------------------
+// NEW UI SYSTEM
+// -----------------------------------------------------
+
+/**
+ * Ensures the UI container and CSS styles exist.
+ * @returns {HTMLElement} The UI container div
+ */
+function ensureUIContainer() {
+    const containerId = 'ui-container';
+    let container = document.getElementById(containerId);
+
+    if (!container) {
+        // 1. Inject CSS Styles dynamically
+        const styleId = 'custom-ui-styles';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.innerHTML = `
+                #ui-container {
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    z-index: 100;
+                    display: flex;
+                    flex-direction: column; /* Stack dropdowns vertically */
+                    gap: 10px;             /* Space between dropdowns */
+                    font-family: Arial, sans-serif;
+                    pointer-events: none;  /* Let clicks pass through empty space */
+                }
+
+                .styled-select {
+                    padding: 10px 15px;
+                    font-size: 16px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                    background-color: rgba(255, 255, 255, 0.9);
+                    cursor: pointer;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    outline: none;
+                    min-width: 200px;
+                    pointer-events: auto; /* Re-enable clicks for the dropdowns */
+                }
+
+                .styled-select:hover {
+                    background-color: #fff;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 2. Create the Container
+        container = document.createElement('div');
+        container.id = containerId;
+        document.body.appendChild(container);
+    }
+
+    return container;
+}
+
+/**
+ * Creates a generic Dropdown box and adds it to the UI overlay.
+ * * @param {Array<{text: string, value: any}>} options - Array of objects defining the menu
+ * @param {Function} onSelectionChange - Callback function (value) => { ... }
+ * @param {string} [placeholder="Select option..."] - The default disabled top option
+ */
+function createDropdown(options, onSelectionChange, placeholder = "Select option...") {
+    const container = ensureUIContainer();
+
+    // 1. Create the Select Element
+    const select = document.createElement('select');
+    select.className = 'styled-select';
+
+    // 2. Add Default Placeholder
+    const defaultOption = document.createElement('option');
+    defaultOption.text = placeholder;
+    defaultOption.value = "__default__";
+    defaultOption.selected = true;
+    defaultOption.disabled = true; // Make it act like a label
+    select.appendChild(defaultOption);
+
+    // 3. Populate Options
+    options.forEach((opt) => {
+        const optionEl = document.createElement('option');
+        optionEl.text = opt.text;
+        optionEl.value = opt.value;
+        select.appendChild(optionEl);
+    });
+
+    // 4. Handle Changes
+    select.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (onSelectionChange && val !== "__default__") {
+            onSelectionChange(val);
+            
+            // Optional: Blur to return keyboard focus to canvas
+            select.blur(); 
+        }
+    });
+
+    // 5. Prevent bubbling (Stop PlayCanvas camera from moving when clicking menu)
+    ['mousedown', 'touchstart', 'mousemove'].forEach(evt => {
+        select.addEventListener(evt, (e) => e.stopPropagation());
+    });
+
+    container.appendChild(select);
+    return select;
+}
+
+/**
+ * Main function to setup the specific UI for this App
+ */
+function createOverlayUI(sceneData) {
+    
+    // 1. Setup Viewpoints Dropdown
+    if (sceneData.viewpoints && sceneData.viewpoints.length > 0) {
+        
+        // Map data to {text, value} format
+        const vpOptions = sceneData.viewpoints.map((vp, index) => {
+            return {
+                text: vp.name || `Viewpoint ${index + 1}`,
+                value: index // We pass the index as the value
+            };
+        });
+
+        // Create the dropdown
+        createDropdown(vpOptions, (selectedValue) => {
+            const index = parseInt(selectedValue);
+            if (sceneData.viewpoints[index]) {
+					const viewpointData = sceneData.viewpoints[index];
+					// This defines what happens when an option is selected
+					const targetPos = new pc.Vec3(viewpointData.targetPosition[0], viewpointData.targetPosition[1], viewpointData.targetPosition[2]);
+					const targetLook = new pc.Vec3(viewpointData.targetLookAt[0], viewpointData.targetLookAt[1], viewpointData.targetLookAt[2]);
+					
+					console.log(`UI triggering move to: ${viewpointData.name}`);
+					smoothCameraMove(targetPos, targetLook);
+				}
+            }
+			, "Jump to Location...");
+    }
+
+	// LoD dropdown
+    const qualityOptions = [
+        { text: "Desktop Max (0-5)", value: 0 },
+        { text: "Desktop (1-5)", value: 1 },
+	    { text: "Mobile Max (2-5)", value: 2 },
+        { text: "Mobile (3-5)", value: 3 }
+    ];
+    
+	const lodSelect = createDropdown(qualityOptions, (val) =>  {
+		sceneParams.lod = val;
+		const gsplatSettings = app.scene.gsplat;
+		gsplatSettings.lodRangeMin = val;
+		gsplatSettings.lodRangeMax = 5;
+	}, "LoD Settings");
+	
+	lodSelect.value = sceneParams.lod;
+	lodSelect.dispatchEvent(new Event('change'))
+
+    const LoDMode = [
+        { text: "Render Color", value: 0 },
+        { text: "Render LoD", value: 1 }
+    ];
+    
+	createDropdown(LoDMode, (val) =>  {
+		const gsplatSettings = app.scene.gsplat;
+		gsplatSettings.colorizeLod = (val == 1);
+	}, "Render");
 }
