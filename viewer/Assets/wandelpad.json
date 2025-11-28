@@ -14,5 +14,22 @@
 		    "maxScale": 3.0,
 		    "minSizeDistance": 50
         }
+    ],
+    "labels": [
+		{
+	      "name": "Parkeertoren",
+		  "text": "Parkeertoren",
+		  "position": [-25.33, 30.52, 61.29],
+		  "fontSize": 42,
+		  "color": [1, 1, 1],
+		  "bgColor": [0, 0, 0, 0.9],
+		  "minScale": 0.5,
+		  "maxScale": 3.0,
+		  "minSizeDistance": 200
+		}],
+    "scripts": [
+       	"Assets/Scripts/Campus/ParkeertorenMonitor.js"
     ]
 }
+
+
