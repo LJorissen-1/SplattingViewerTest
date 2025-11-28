@@ -89,11 +89,11 @@
     ],
 	"viewpoints": [
     {
-      "name": "Library View",
+      "name": "Poortgebouw",
       "position": [-135.96, -54.18, 317.27],
       "targetPosition": [-135.96, -54.18, 317.27],
       "targetLookAt": [-135.00, -55.86, 307.46],
-      "icon": "Assets/Icons/Wandelpad.jpg" 
+      "icon": "Assets/Icons/Panorama.png" 
     }
   ]
 }
