@@ -9,7 +9,7 @@
             "scale": [5, 5, 5],
             "targetScene": "campus",
             "targetCameraPosition": [-130.79, 2.86, 255.50],
-            "targetCameraLookAt": [-136.22, -4.21, 260.04]
+            "targetCameraLookAt": [-136.22, -4.21, 260.06]
         }
     ]
 }
