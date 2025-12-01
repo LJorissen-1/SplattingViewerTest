@@ -228,6 +228,7 @@ light1.addComponent('light', {
 });
 light1.setEulerAngles(45, 210, 0);
 app.root.addChild(light1);
+app.scene.ambientLight = new pc.Color(0.4, 0.4, 0.4);
 
 const screen = new pc.Entity();
 screen.addComponent('screen', {
