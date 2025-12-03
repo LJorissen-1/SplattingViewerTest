@@ -1,7 +1,7 @@
 import * as pc from "playcanvas";
 window.pc = pc;
 
-// --- HELPER: URL & PARAMS ---
+// Request scene parameters from URL
 function getSceneParams() {
     const params = new URLSearchParams(window.location.search);
     return {
@@ -23,18 +23,20 @@ function getSceneParams() {
     };
 }
 
+// Get parameters and limit LoD choice
 const sceneParams = getSceneParams();
 sceneParams.lod = (sceneParams.lod > 3) ? 3 : sceneParams.lod ;
 sceneParams.lod = (sceneParams.lod < 0) ? 0 : sceneParams.lod ;
 
-// Create application
+// Create canvas
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 
-// Create application
+// Allow Mouse + Keyboard and touch interaction
 const mouse = new pc.Mouse(canvas);
-const touch = new pc.TouchDevice(canvas); // Highly recommended for mobile support
+const touch = new pc.TouchDevice(canvas); 
 
+// Create application
 const app = new pc.Application(canvas, {
     mouse: mouse, // Pass them here
     touch: touch,
@@ -49,6 +51,9 @@ app.start();
 
 window.addEventListener('resize', () => app.resizeCanvas());
 
+
+
+// Add parser for Obj files
 // Load obj-model.js manually and wait for it
 await new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -64,17 +69,19 @@ app.loader.getHandler("model").addParser(objParser, function (url) {
     return (pc.path.getExtension(url) === '.obj');
 });
 
+
+
+
 // We load the JSON file corresponding to the current scene name
 const jsonAsset = new pc.Asset('scene-data', 'json', {
     url: `Assets/${sceneParams.scene}.json`
 });
 
+// Load assets
 const initialLoader = new pc.AssetListLoader([jsonAsset], app.assets);
 await new Promise(resolve => initialLoader.load(resolve));
+const sceneData = jsonAsset.resource; 
 
-const sceneData = jsonAsset.resource; // The JSON content
-
-// PREPARE DYNAMIC ASSETS
 const assets = {
     camera: new pc.Asset('camera-controls', 'script', {
         url: 'https://cdn.jsdelivr.net/npm/playcanvas/scripts/esm/camera-controls.mjs'
@@ -135,12 +142,11 @@ if (sceneData.models) {
 const loader = new pc.AssetListLoader(Object.values(assets), app.assets);
 await new Promise(resolve => loader.load(resolve));
 
-
+// Create the overlay for UI elements
 createOverlayUI(sceneData);
 
-// --- SCENE CONSTRUCTION ---
 
-// 1. Setup Camera and Script FIRST
+// Setup camera and camera controls script
 const camera = new pc.Entity('Camera');
 camera.addComponent('camera');
 camera.addComponent('script');
@@ -148,14 +154,11 @@ camera.addComponent('script');
 // Create the script instance so we can access it immediately
 // We capture the returned instance in a variable
 const controls = camera.script.create('cameraControls');
-controls.moveSpeed = sceneData.moveSpeed ? sceneData.moveSpeed : 10;
-controls.moveSlowSpeed = controls.moveSpeed * 0.5;
-controls.moveFastSpeed = controls.moveSpeed * 2;
-
+setCameraControlSettings(controls);
 
 app.root.addChild(camera);
 
-// 2. Apply Position and LookAt
+// Apply Position and LookAt
 if (sceneParams.hasCamArgs) 
 {
     const c_p = sceneParams.camPos;
@@ -173,6 +176,7 @@ if (sceneParams.hasCamArgs)
 } else {
     camera.setPosition(0, 0, 2.5); 
 }
+
 
 
 // Instantiate Models defined in JSON
@@ -214,7 +218,7 @@ if (sceneData.models) {
     });
 }
 
-// 3. Splat
+// Add Gaussian Splat
 const splat = new pc.Entity('Scene Splat');
 splat.setPosition(0, -0.7, 0);
 const s_o = sceneData.orientation;
@@ -223,7 +227,9 @@ splat.addComponent('gsplat', { asset: assets.splatmodel, unified: true }); // In
 splat.gsplat.lodDistances = sceneData.lodDistances ? sceneData.lodDistances : [5, 10, 25, 50, 65];
 app.root.addChild(splat);
 
-// 4. Light
+
+
+// Add Light
 const light1 = new pc.Entity('Directional Light');
 light1.addComponent('light', {
     type: 'directional',
@@ -234,6 +240,8 @@ light1.setEulerAngles(45, 210, 0);
 app.root.addChild(light1);
 app.scene.ambientLight = new pc.Color(0.4, 0.4, 0.4);
 
+
+// Screen object for billboards and proper text scaling
 const screen = new pc.Entity();
 screen.addComponent('screen', {
 	referenceResolution: new pc.Vec2(1280, 780),
@@ -243,7 +251,9 @@ screen.addComponent('screen', {
 });
 app.root.addChild(screen);
 
-// 5. Create Portals (Billboards)
+
+
+// Create Portals (Billboards)
 const portalEntities = [];
 if (sceneData.portals) {
 	sceneData.portals.forEach((portalDef, index) => {
@@ -252,6 +262,8 @@ if (sceneData.portals) {
 	});
 }
 
+
+// Create viewpoint objects (Billboards)
 const viewpointEntities = [];
 if (sceneData.viewpoints) {
 	sceneData.viewpoints.forEach((vpDef, index) => {
@@ -261,7 +273,7 @@ if (sceneData.viewpoints) {
 }
 
 
-// --- LOAD LABELS FROM JSON ---
+// Load and add labels from JSON
 const labels = new Map();
 if (sceneData.labels) {
     sceneData.labels.forEach(labelData => {
@@ -303,21 +315,23 @@ if (sceneData.labels) {
     });
 }
 
-// -----------------------------------------------------
-// EXPOSE CONTEXT
-// -----------------------------------------------------
+// Expose content to other scripts
 // We attach a context object to the global app instance.
 // Loaded scripts can access this via: pc.Application.getApplication().sceneContext
-
 app.sceneContext = {
     camera: camera,
     labels: labels, // The Map containing your text entities
+	viewpointEntities: viewpointEntities,
+	portalEntities: portalEntities,
     portals: portalEntities,
+	modelEntities: modelEntities,
     sceneData: sceneData,
 	screen: screen,
     createFloatingText: createFloatingText // Even expose functions!
 };
 
+
+// Load scene-specific scripts
 if (sceneData.scripts) {
     const scriptAssets = [];
     sceneData.scripts.forEach((scriptUrl, index) => {
@@ -333,6 +347,7 @@ if (sceneData.scripts) {
 }
 
 
+// Keyboard interaction: Press p to print camera pose
 window.addEventListener('keydown', (event) => {
     if (event.key === 'p' || event.key === 'P') {
         const p = camera.getPosition();
@@ -356,6 +371,8 @@ window.addEventListener('keydown', (event) => {
         console.log('-----------------------------------');
     }
 });
+
+
 
 function createFloatingText(text, fixedWorldPos, fontSize, color, bgColor, minScale = 0.5, maxScale = 1.5, minSizeDistance = 50.0) {
     const paddingH = 20; 
@@ -474,20 +491,11 @@ function navigateToScene(data) {
     window.location.href = `index.html?${params.toString()}`;
 }
 
-/**
- * Creates a generic 2D Image Billboard (Element) that can optionally track a 3D position.
- * * @param {string} name - Name of the entity
- * @param {pc.Texture} texture - The texture resource
- * @param {pc.Entity} parent - The parent entity (e.g., screen)
- * @param {function} [onClick] - Optional click callback
- * @param {pc.Vec3} [worldPos] - Optional 3D position to track
- * @param {Object} [scaleConfig] - Optional scaling configuration {minScale, maxScale, minSizeDistance}
- * @returns {pc.Entity} The created entity
- */
+
 function createBillboard(name, texture, parent, onClick, worldPos, scaleConfig) {
     const entity = new pc.Entity(name);
 
-    // 1. Setup Image Element
+    // Setup Image Element
     entity.addComponent('element', {
         type: pc.ELEMENTTYPE_IMAGE,
         texture: texture,
@@ -498,19 +506,19 @@ function createBillboard(name, texture, parent, onClick, worldPos, scaleConfig) 
         useInput: true
     });
 
-    // 2. Handle Interactions
+    // Handle Interactions
     if (onClick && typeof onClick === 'function') {
         entity.element.on('mousedown', onClick);
         entity.element.on('mouseenter', () => { document.body.style.cursor = 'pointer'; });
         entity.element.on('mouseleave', () => { document.body.style.cursor = 'default'; });
     }
 
-    // 3. Attach to hierarchy
+    // Attach to hierarchy
     if (parent) {
         parent.addChild(entity);
     }
 
-    // 4. Setup 3D Tracking and Scaling (if worldPos is provided)
+    // Setup 3D Tracking and Scaling (if worldPos is provided)
     if (worldPos) {
         const screenPos = new pc.Vec3();
 
@@ -569,11 +577,9 @@ function createBillboard(name, texture, parent, onClick, worldPos, scaleConfig) 
     return entity;
 }
 
-/**
- * Creates a 2D Image Portal that tracks a 3D position
- */
+// Creates a 2D Image Portal that tracks a 3D position
 function createPortal2D(portalData, textureAsset) {
-    // 1. Prepare Data
+    // Prepare Data
     const fixedWorldPos = new pc.Vec3(
         portalData.position[0], 
         portalData.position[1], 
@@ -590,7 +596,7 @@ function createPortal2D(portalData, textureAsset) {
         navigateToScene(portalData);
     };
 
-    // 2. Delegate creation to createBillboard
+    // Delegate creation to createBillboard
     // Note: Assuming 'screen' is a global variable available in this scope
     return createBillboard(
         portalData.name || 'Portal',
@@ -662,16 +668,15 @@ function smoothCameraMove(targetPos, targetLookAt) {
 	camera.setPosition(targetPos);
 	camera.setRotation(endRot);
 	camera.syncHierarchy(); 
-	if (newControls) {
+	if (newControls) 
+	{
+		setCameraControlSettings(newControls);
 		
-		newControls.moveSpeed = sceneData.moveSpeed ? sceneData.moveSpeed : 10;
-		newControls.moveSlowSpeed = newControls.moveSpeed * 0.5;
-		newControls.moveFastSpeed = newControls.moveSpeed * 2;
-
 		const c_la = targetLookAt;
 		camera.lookAt(c_la);
 		const angles = camera.getEulerAngles();  
-		if (newControls) {
+		if (newControls) 
+		{
 			newControls.look(c_la, false);
 			newControls.yaw = angles.y;
 			newControls.pitch = angles.x;
@@ -743,18 +748,18 @@ function ensureUIContainer() {
 
 /**
  * Creates a generic Dropdown box and adds it to the UI overlay.
- * * @param {Array<{text: string, value: any}>} options - Array of objects defining the menu
+ * @param {Array<{text: string, value: any}>} options - Array of objects defining the menu
  * @param {Function} onSelectionChange - Callback function (value) => { ... }
  * @param {string} [placeholder="Select option..."] - The default disabled top option
  */
 function createDropdown(options, onSelectionChange, placeholder = "Select option...") {
     const container = ensureUIContainer();
 
-    // 1. Create the Select Element
+    // Create the Select Element
     const select = document.createElement('select');
     select.className = 'styled-select';
 
-    // 2. Add Default Placeholder
+    // Add Default Placeholder
     const defaultOption = document.createElement('option');
     defaultOption.text = placeholder;
     defaultOption.value = "__default__";
@@ -762,7 +767,7 @@ function createDropdown(options, onSelectionChange, placeholder = "Select option
     defaultOption.disabled = true; // Make it act like a label
     select.appendChild(defaultOption);
 
-    // 3. Populate Options
+    // Populate Options
     options.forEach((opt) => {
         const optionEl = document.createElement('option');
         optionEl.text = opt.text;
@@ -770,18 +775,16 @@ function createDropdown(options, onSelectionChange, placeholder = "Select option
         select.appendChild(optionEl);
     });
 
-    // 4. Handle Changes
+    // Handle Changes
     select.addEventListener('change', (e) => {
         const val = e.target.value;
         if (onSelectionChange && val !== "__default__") {
             onSelectionChange(val);
-            
-            // Optional: Blur to return keyboard focus to canvas
             select.blur(); 
         }
     });
 
-    // 5. Prevent bubbling (Stop PlayCanvas camera from moving when clicking menu)
+    // Prevent bubbling (Stop PlayCanvas camera from moving when clicking menu)
     ['mousedown', 'touchstart', 'mousemove'].forEach(evt => {
         select.addEventListener(evt, (e) => e.stopPropagation());
     });
@@ -790,9 +793,7 @@ function createDropdown(options, onSelectionChange, placeholder = "Select option
     return select;
 }
 
-/**
- * Main function to setup the specific UI for this App
- */
+// Main function to setup the specific UI for this App
 function createOverlayUI(sceneData) {
     
     // 1. Setup Viewpoints Dropdown
@@ -849,4 +850,16 @@ function createOverlayUI(sceneData) {
 		const gsplatSettings = app.scene.gsplat;
 		gsplatSettings.colorizeLod = (val == 1);
 	}, "Render");
+}
+
+function setCameraControlSettings(controls)
+{
+	// Allow changing speeds (needed in larger areas)
+	controls.moveSpeed = sceneData.moveSpeed ? sceneData.moveSpeed : 10;
+	controls.moveSlowSpeed = controls.moveSpeed * 0.5;
+	controls.moveFastSpeed = controls.moveSpeed * 2;
+
+	// Set to allow touch based navigation
+	controls.enableOrbit = false;
+	controls.enablePan = false;
 }
