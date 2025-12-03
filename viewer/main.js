@@ -1,6 +1,25 @@
 import * as pc from "playcanvas";
 window.pc = pc;
 
+// Function to force mobile browsers to use real device width
+function setMobileViewport() {
+    // Check if tag already exists to avoid duplicates
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'viewport';
+        document.head.appendChild(meta);
+    }
+    
+    // Set the content to lock scaling (standard for 3D apps)
+    // width=device-width: Tells browser 320px is 320px, not 980px
+    // user-scalable=no: Prevents double-tap to zoom which ruins 3D controls
+    meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+}
+
+// Call it immediately
+setMobileViewport();
+
 // Request scene parameters from URL
 function getSceneParams() {
     const params = new URLSearchParams(window.location.search);
@@ -707,7 +726,7 @@ function ensureUIContainer() {
             style.innerHTML = `
                 /* --- DESKTOP DEFAULTS --- */
                 #ui-container {
-                    position: absolute;
+                    position: fixed;
                     top: 20px; left: 20px;
                     z-index: 100;
                     display: flex;
@@ -717,7 +736,7 @@ function ensureUIContainer() {
                 }
 
                 #top-right-logo-container {
-                    position: absolute;
+                    position: fixed;
                     top: 20px; right: 20px;
                     display: flex;
                     flex-direction: row;
@@ -741,7 +760,7 @@ function ensureUIContainer() {
                 /* Hamburger Button (Hidden on Desktop) */
                 #mobile-menu-btn {
                     display: none; 
-                    position: absolute;
+                    position: fixed;
                     top: 20px; right: 20px;
                     z-index: 200;
                     background: rgba(255, 255, 255, 0.9);
@@ -964,22 +983,31 @@ function addTopRightLogo(imageUrl, linkUrl) {
 function createMobileMenuButton() {
     const btn = document.createElement('div');
     btn.id = 'mobile-menu-btn';
-    btn.innerHTML = '☰'; // Hamburger Icon
+    btn.innerHTML = '☰'; 
     
     let isOpen = false;
 
-    btn.addEventListener('click', () => {
+    // Helper to toggle menu
+    const toggleMenu = (e) => {
+        // Prevent the event from passing through to the 3D canvas
+        e.preventDefault(); 
+        e.stopPropagation();
+
         isOpen = !isOpen;
         if (isOpen) {
             document.body.classList.add('menu-open');
-            btn.innerHTML = '✕'; // Close Icon
-            btn.style.background = '#ffcccc'; // Red tint when open
+            btn.innerHTML = '✕'; 
+            btn.style.background = '#ffcccc'; 
         } else {
             document.body.classList.remove('menu-open');
             btn.innerHTML = '☰';
             btn.style.background = 'rgba(255, 255, 255, 0.9)';
         }
-    });
+    };
+
+    // Listen to both click (desktop) and touchstart (mobile)
+    btn.addEventListener('click', toggleMenu);
+    btn.addEventListener('touchstart', toggleMenu, { passive: false });
 
     document.body.appendChild(btn);
 }
