@@ -179,7 +179,6 @@ if (controls) {
 }
 
 
-
 // Instantiate Models defined in JSON
 const modelEntities = [];
 if (sceneData.models) {
@@ -706,16 +705,26 @@ function ensureUIContainer() {
             const style = document.createElement('style');
             style.id = styleId;
             style.innerHTML = `
+                /* --- DESKTOP DEFAULTS --- */
                 #ui-container {
                     position: absolute;
-                    top: 20px;
-                    left: 20px;
+                    top: 20px; left: 20px;
                     z-index: 100;
                     display: flex;
-                    flex-direction: column; /* Stack dropdowns vertically */
-                    gap: 10px;             /* Space between dropdowns */
-                    font-family: Arial, sans-serif;
-                    pointer-events: none;  /* Let clicks pass through empty space */
+                    flex-direction: column;
+                    gap: 10px;
+                    pointer-events: none;
+                }
+
+                #top-right-logo-container {
+                    position: absolute;
+                    top: 20px; right: 20px;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
+                    z-index: 101;
+                    pointer-events: none;
+                    align-items: center;
                 }
 
                 .styled-select {
@@ -725,23 +734,73 @@ function ensureUIContainer() {
                     border: 1px solid #ccc;
                     background-color: rgba(255, 255, 255, 0.9);
                     cursor: pointer;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    outline: none;
+                    pointer-events: auto;
                     min-width: 200px;
-                    pointer-events: auto; /* Re-enable clicks for the dropdowns */
+                }
+                
+                /* Hamburger Button (Hidden on Desktop) */
+                #mobile-menu-btn {
+                    display: none; 
+                    position: absolute;
+                    top: 20px; right: 20px;
+                    z-index: 200;
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    padding: 10px;
+                    font-size: 24px;
+                    cursor: pointer;
+                    line-height: 1;
                 }
 
-                .styled-select:hover {
-                    background-color: #fff;
+                /* --- MOBILE OVERRIDES (Screens smaller than 768px) --- */
+                @media (max-width: 768px) {
+                    
+                    /* Show the hamburger button */
+                    #mobile-menu-btn {
+                        display: block;
+                    }
+
+                    /* Hide containers by default on mobile */
+                    #ui-container, #top-right-logo-container {
+                        display: none !important;
+                    }
+
+                    /* --- WHEN MENU IS OPEN --- */
+                    body.menu-open #ui-container {
+                        display: flex !important;
+                        position: absolute;
+                        top: 70px; /* Below the button */
+                        left: 0; right: 0;
+                        width: 100%;
+                        align-items: center; /* Center align items */
+                        background: rgba(0,0,0,0.8); /* Dark background */
+                        padding: 20px 0;
+                        height: auto;
+                    }
+
+                    body.menu-open #top-right-logo-container {
+                        display: flex !important;
+                        flex-direction: column; /* Stack logos vertically on mobile */
+                        position: absolute;
+                        top: auto; 
+                        bottom: 20px; /* Move logos to bottom of screen */
+                        left: 0; right: 0;
+                        width: 100%;
+                        justify-content: center;
+                    }
                 }
             `;
             document.head.appendChild(style);
         }
 
-        // 2. Create the Container
+        // 2. Create the UI Container (Dropdowns)
         container = document.createElement('div');
         container.id = containerId;
         document.body.appendChild(container);
+        
+        // 3. Create the Mobile Menu Button
+        createMobileMenuButton();
     }
 
     return container;
@@ -797,7 +856,11 @@ function createDropdown(options, onSelectionChange, placeholder = "Select option
 // Main function to setup the specific UI for this App
 function createOverlayUI(sceneData) {
     
-    // 1. Setup Viewpoints Dropdown
+	addTopRightLogo("Assets/Logo/POMLimburg.png", "https://pomlimburg.be/");
+	addTopRightLogo("Assets/Logo/digital_futurlab_con.jpg", "https://www.uhasselt.be/en/instituten-en/digitalfuturelab");
+	addTopRightLogo("Assets/Logo/PXL.png", "https://www.hogeschoolpxl.be/");
+
+    // Setup Viewpoints Dropdown
     if (sceneData.viewpoints && sceneData.viewpoints.length > 0) {
         
         // Map data to {text, value} format
@@ -863,4 +926,60 @@ function setCameraControlSettings(controls)
 	// Set to allow touch based navigation
 	controls.enableOrbit = false;
 	controls.enablePan = false;
+}
+
+/**
+ * Adds a logo to a container in the top-right corner.
+ * Can be called multiple times to add multiple logos.
+ */
+function addTopRightLogo(imageUrl, linkUrl) {
+    const containerId = 'top-right-logo-container';
+    let container = document.getElementById(containerId);
+
+    // Create container if missing
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        document.body.appendChild(container);
+    }
+
+    const logo = document.createElement('img');
+    logo.src = imageUrl;
+    
+    // Inline styles for the specific image size
+    logo.style.height = '50px'; 
+    logo.style.width = 'auto';
+    logo.style.pointerEvents = 'auto';
+    
+    if (linkUrl) {
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', () => {
+            window.open(linkUrl, '_blank');
+        });
+    }
+
+    container.appendChild(logo);
+}
+
+function createMobileMenuButton() {
+    const btn = document.createElement('div');
+    btn.id = 'mobile-menu-btn';
+    btn.innerHTML = '☰'; // Hamburger Icon
+    
+    let isOpen = false;
+
+    btn.addEventListener('click', () => {
+        isOpen = !isOpen;
+        if (isOpen) {
+            document.body.classList.add('menu-open');
+            btn.innerHTML = '✕'; // Close Icon
+            btn.style.background = '#ffcccc'; // Red tint when open
+        } else {
+            document.body.classList.remove('menu-open');
+            btn.innerHTML = '☰';
+            btn.style.background = 'rgba(255, 255, 255, 0.9)';
+        }
+    });
+
+    document.body.appendChild(btn);
 }
