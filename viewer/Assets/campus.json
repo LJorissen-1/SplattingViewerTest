@@ -9,8 +9,8 @@
             "position": [-189.73, -91.93, 304.67],
             "scale": [5, 5, 5],
             "targetScene": "brug",
-            "targetCameraPosition": [-0.52, 1.23, 1.51],
-            "targetCameraLookAt": [-1.01, -0.37, -7.00],
+            "targetCameraPosition": [21.05, -0.08, -32.80],
+            "targetCameraLookAt": [12.59, -2.06, -27.85],
 			"minScale": 0.5,
 		    "maxScale": 3.0,
 		    "minSizeDistance": 200

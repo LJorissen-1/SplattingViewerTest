@@ -1,5 +1,5 @@
 {
-    "splatAsset": "Assets/Wandelpad_2025_11_21_Bioville/lod-meta.json",
+    "splatAsset": "Assets/Splats/Wandelpad_2025_11_21_Bioville/lod-meta.json",
 	"orientation": [90, 0, 180],
     "portals": [
         {
@@ -18,7 +18,7 @@
             "name": "Wandelpad_Zijkant",
             "image": "Assets/Icons/Wandelpad.jpg",
             "position": [-25.38, 0.79, -81.30],
-            "scale": [3, 3, 3],
+            "scale": [1, 1, 1],
             "targetScene": "wandelpad_zijkant",
             "targetCameraPosition": [-20.02, -0.32, 10.64],
             "targetCameraLookAt": [-16.52, -2.70, 1.58],

@@ -1,0 +1,30 @@
+{
+    "splatAsset": "Assets/Splats/DFLBrug/lod-meta.json",
+	"orientation": [90, 0, 180],
+    "portals": [
+        {
+            "name": "campus",
+            "image": "Assets/Icons/Campus.jpg",
+            "position": [22.71, -0.04, -41.26],
+            "scale": [1, 1, 1],
+            "targetScene": "campus",
+            "targetCameraPosition": [-130.79, 2.86, 255.50],
+            "targetCameraLookAt": [-136.22, -4.21, 260.06],
+			"minScale": 0.1,
+		    "maxScale": 5.0
+        },
+		{
+            "name": "inkomhal",
+            "image": "Assets/Icons/door.png",
+            "position": [0.25, -0.73, 4.31],
+            "scale": [1, 1, 1],
+            "targetScene": "dfl_inkomhal",
+            "targetCameraPosition": [-130.79, 2.86, 255.50],
+            "targetCameraLookAt": [-136.22, -4.21, 260.06],
+			"minScale": 0.1,
+		    "maxScale": 5.0
+        }
+    ]
+}
+
+

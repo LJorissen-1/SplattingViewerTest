@@ -159,22 +159,23 @@ setCameraControlSettings(controls);
 app.root.addChild(camera);
 
 // Apply Position and LookAt
+var c_p = new pc.Vec3(115.47, 472.02, 390.57); //sceneParams.camPos;
+var c_la = new pc.Vec3(112.93, 463.83, 385.42);
 if (sceneParams.hasCamArgs) 
 {
-    const c_p = sceneParams.camPos;
-    const c_la = sceneParams.camLookAt;
-    camera.setPosition(c_p); 
-    camera.lookAt(c_la);
-    const angles = camera.getEulerAngles();    
-    if (controls) {
-        controls.look(c_la, false);
-        controls.yaw = angles.y;
-        controls.pitch = angles.x;
-        controls.ey = angles.y;
-        controls.ex = angles.x;
-    }
-} else {
-    camera.setPosition(0, 0, 2.5); 
+    c_p = sceneParams.camPos;
+    c_la = sceneParams.camLookAt;
+}
+
+camera.setPosition(c_p); 
+camera.lookAt(c_la);
+const angles = camera.getEulerAngles();    
+if (controls) {
+	controls.look(c_la, false);
+	controls.yaw = angles.y;
+	controls.pitch = angles.x;
+	controls.ey = angles.y;
+	controls.ex = angles.x;
 }
 
 

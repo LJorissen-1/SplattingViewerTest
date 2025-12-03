@@ -1,0 +1,20 @@
+{
+    "splatAsset": "Assets/Splats/DFLInkomhal/lod-meta.json",
+	"orientation": [90, 0, 180],
+	"moveSpeed": 5,
+    "portals": [
+		{
+            "name": "brug",
+            "image": "Assets/Icons/door.png",
+            "position": [1.31, -4.31, -6.77],
+            "scale": [1, 1, 1],
+            "targetScene": "brug",
+            "targetCameraPosition": [0.62, -0.78, 1.13],
+            "targetCameraLookAt": [-1.58, -0.90, -8.62],
+			"minScale": 0.05,
+		    "maxScale": 2.0
+        }
+    ]
+}
+
+
