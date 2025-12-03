@@ -148,6 +148,10 @@ camera.addComponent('script');
 // Create the script instance so we can access it immediately
 // We capture the returned instance in a variable
 const controls = camera.script.create('cameraControls');
+controls.moveSpeed = sceneData.moveSpeed ? sceneData.moveSpeed : 10;
+controls.moveSlowSpeed = controls.moveSpeed * 0.5;
+controls.moveFastSpeed = controls.moveSpeed * 2;
+
 
 app.root.addChild(camera);
 
@@ -637,21 +641,11 @@ function createViewpoint(viewpointData, textureAsset)
 // Helper: Smoothly move camera and sync controls
 let cameraTween = null; // Store active tween to allow cancelling
 function smoothCameraMove(targetPos, targetLookAt) {
-    // 1. Cancel existing tween
-    if (cameraTween) {
-        cameraTween.off();
-        cameraTween = null;
-    }
 
-    // 2. DESTROY THE CONTROLS TEMPORARILY
-    // This removes all "ghost" state (old pivot, inertia, distance, etc.)
     // We will recreate them fresh when we arrive.
     if (camera.script && camera.script.has('cameraControls')) {
         camera.script.destroy('cameraControls');
     }
-
-    const startPos = camera.getPosition().clone();
-    const startRot = camera.getRotation().clone();
 
     // Calculate Target Rotation
     const dummy = new pc.Entity();
@@ -662,64 +656,29 @@ function smoothCameraMove(targetPos, targetLookAt) {
     // We also need the final Euler angles for the new script later
     const endAngles = dummy.getEulerAngles().clone();
     dummy.destroy();
+	
+	const newControls = camera.script.create('cameraControls');
 
-    let alpha = 0;
-    const duration = 1.5;
+	camera.setPosition(targetPos);
+	camera.setRotation(endRot);
+	camera.syncHierarchy(); 
+	if (newControls) {
+		
+		newControls.moveSpeed = sceneData.moveSpeed ? sceneData.moveSpeed : 10;
+		newControls.moveSlowSpeed = newControls.moveSpeed * 0.5;
+		newControls.moveFastSpeed = newControls.moveSpeed * 2;
 
-    const updateMove = (dt) => {
-        alpha += dt / duration;
-        
-        if (alpha >= 1) {
-            // --- FINISHED ---
-            // 1. Snap to exact final transform
-            camera.setPosition(targetPos);
-            camera.setRotation(endRot);
-            camera.syncHierarchy(); 
-
-            // 2. CREATE FRESH CONTROLS
-            // This initializes the script as if the scene just loaded.
-            // It will read the CURRENT camera position and "lock in" correctly.
-            const newControls = camera.script.create('cameraControls');
-
-            // 3. APPLY INITIAL STATE (Same as your startup logic)
-            // We tell it where to look, and set the angles to match our current rotation.
-            if (newControls) {
-                // Set the Pivot / Target
-                if (newControls.look) {
-                    newControls.look(targetLookAt, false); // false = immediate/no-transition
-                }
-
-                // Sync the angles so the mouse doesn't jump
-                if (newControls.hasOwnProperty('yaw')) newControls.yaw = endAngles.y;
-                if (newControls.hasOwnProperty('pitch')) newControls.pitch = endAngles.x;
-                
-                // Some versions use ex/ey
-                if (newControls.hasOwnProperty('ey')) newControls.ey = endAngles.y;
-                if (newControls.hasOwnProperty('ex')) newControls.ex = endAngles.x;
-                
-                // Safety: Ensure it's enabled
-                newControls.enabled = true;
-            }
-            
-            app.off('update', updateMove);
-            cameraTween = null;
-        } else {
-            // --- MOVING ---
-            // Cubic Ease-In-Out for a premium feel
-            const t = alpha < 0.5 ? 4 * alpha * alpha * alpha : 1 - Math.pow(-2 * alpha + 2, 3) / 2;
-
-            const curPos = new pc.Vec3();
-            curPos.lerp(startPos, targetPos, t);
-            camera.setPosition(curPos);
-
-            const curRot = new pc.Quat();
-            curRot.slerp(startRot, endRot, t);
-            camera.setRotation(curRot);
-        }
-    };
-
-    app.on('update', updateMove);
-    cameraTween = { off: () => app.off('update', updateMove) };
+		const c_la = targetLookAt;
+		camera.lookAt(c_la);
+		const angles = camera.getEulerAngles();  
+		if (newControls) {
+			newControls.look(c_la, false);
+			newControls.yaw = angles.y;
+			newControls.pitch = angles.x;
+			newControls.ey = angles.y;
+			newControls.ex = angles.x;
+		}
+	}               
 }
 
 // -----------------------------------------------------

@@ -1,7 +1,7 @@
 {
     "splatAsset": "Assets/Splats/Campus/lod-meta.json",
 	"orientation": [90, 0, 180],
-	"lodDistances": [50, 100, 250, 500, 650],
+	"lodDistances": [100, 200, 500, 1000, 1400],
     "portals": [
         {
             "name": "Brug",
@@ -115,5 +115,6 @@
       "targetLookAt": [-135.00, -55.86, 307.46],
       "icon": "Assets/Icons/Panorama.png" 
     }
-  ]
+  ],
+  "moveSpeed": 50
 }
