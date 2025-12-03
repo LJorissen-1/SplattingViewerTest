@@ -52,8 +52,8 @@ const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 
 // Allow Mouse + Keyboard and touch interaction
-const mouse = new pc.Mouse(canvas);
-const touch = new pc.TouchDevice(canvas); 
+const mouse = new pc.Mouse(document.body);
+const touch = new pc.TouchDevice(document.body); 
 
 // Create application
 const app = new pc.Application(canvas, {
